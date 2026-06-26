@@ -773,8 +773,7 @@ async function connectSheets() {
     // Note a mudança: trocamos /edit... por /export?format=csv&gid=77227608
     const csvUrl = `https://docs.google.com/spreadsheets/d/1pGrglV-Z5x0vIdmBFdQClXCLEVs_OI2Woixltku59Dk/export?format=csv&gid=77227608`;
     
-    // No seu HTML, a chamada está assim:
-const res = await fetch(`${APPS_SCRIPT_URL}?action=getStats`);
+    const res = await fetch(csvUrl);
     if (!res.ok) throw new Error(`HTTP ${res.status} - Verifique se a planilha está pública`);
     
     const text = await res.text();
