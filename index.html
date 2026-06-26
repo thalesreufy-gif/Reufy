@@ -1,86 +1,1136 @@
 <!DOCTYPE html>
-<html lang="pt-BR" xmlns="http://www.w3.org/1999/xhtml">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="x-apple-disable-message-reformatting" />
-  <title>Atualização Integração WhatsApp – Reufy</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reufy — Central de Análise de Suporte 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+  :root {
+    --bg: #0b0e1a;
+    --surface: #111627;
+    --surface2: #161d35;
+    --border: #1e2a4a;
+    --accent: #3b82f6;
+    --accent2: #8b5cf6;
+    --accent3: #10b981;
+    --accent4: #f59e0b;
+    --accent5: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --card-glow: 0 0 40px rgba(59,130,246,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #0b0e1a 0%, #111627 50%, #0d1530 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(20px);
+  }
+
+  .header-left { display: flex; align-items: center; gap: 16px; }
+
+  .logo-mark {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 16px; color: #fff;
+    box-shadow: 0 4px 20px rgba(59,130,246,0.4);
+  }
+
+  .header-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+  .header-subtitle { font-size: 12px; color: var(--muted); margin-top: 1px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+  .header-badge {
+    background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3);
+    color: #10b981; font-size: 11px; font-weight: 500; padding: 4px 12px;
+    border-radius: 20px; letter-spacing: 0.5px;
+  }
+
+  .header-badge.disconnected {
+    background: rgba(245,158,11,0.15); border-color: rgba(245,158,11,0.3); color: #f59e0b;
+  }
+
+  .header-date { font-size: 12px; color: var(--muted); text-align: right; }
+
+  .sheets-bar {
+    background: linear-gradient(90deg, rgba(16,185,129,0.06) 0%, rgba(59,130,246,0.06) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .sheets-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 12px 0;
+  }
+
+  .sheets-bottom {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 10px 0 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .method-tabs {
+    display: flex;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .method-tab {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 5px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.18s;
+    white-space: nowrap;
+  }
+
+  .method-tab.active {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .method-tab:hover:not(.active) { color: var(--text); }
+
+  .sheets-icon {
+    width: 28px; height: 28px;
+    background: rgba(16,185,129,0.15);
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .sheets-label {
+    font-size: 12px; font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .sheets-label small { display: block; font-size: 10px; color: var(--muted); font-weight: 400; margin-top: 1px; }
+
+  .sheets-input {
+    flex: 1; min-width: 220px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .sheets-input:focus { border-color: var(--accent); }
+  .sheets-input::placeholder { color: var(--muted); }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .input-label {
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+
+  .api-hint {
+    font-size: 10px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .api-hint a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(59,130,246,0.3);
+    transition: border-color 0.2s;
+  }
+
+  .api-hint a:hover { border-color: var(--accent); }
+
+  .sheets-btn {
+    background: var(--accent);
+    border: none; border-radius: 8px;
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px; font-weight: 500;
+    padding: 8px 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .sheets-btn:hover { background: #2563eb; transform: translateY(-1px); }
+  .sheets-btn:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
+
+  .sheets-btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px; font-weight: 400;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .sheets-btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  .sheets-status {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  .sheets-status.ok { background: rgba(16,185,129,0.12); color: #10b981; }
+  .sheets-status.err { background: rgba(239,68,68,0.12); color: #ef4444; }
+  .sheets-status.loading { background: rgba(59,130,246,0.12); color: #60a5fa; }
+
+  .mapping-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(7,10,20,0.85);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+
+  .mapping-overlay.active { display: flex; }
+
+  .mapping-modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    width: 580px;
+    max-width: 95vw;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .mapping-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px; font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .mapping-subtitle { font-size: 12px; color: var(--muted); margin-bottom: 24px; line-height: 1.6; }
+
+  .mapping-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+
+  .mapping-row {
+    display: grid;
+    grid-template-columns: 1fr 20px 1fr;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mapping-field {
+    font-size: 12px; font-weight: 500;
+    color: var(--text);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 9px 12px;
+  }
+
+  .mapping-field span { display: block; font-size: 10px; color: var(--muted); font-weight: 400; margin-top: 1px; }
+
+  .mapping-arrow { color: var(--muted); text-align: center; font-size: 14px; }
+
+  .mapping-select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    outline: none;
+    cursor: pointer;
+    width: 100%;
+    transition: border-color 0.2s;
+  }
+
+  .mapping-select:focus { border-color: var(--accent); }
+
+  .mapping-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+  .btn-primary {
+    background: var(--accent); border: none; border-radius: 8px;
+    color: #fff; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500; padding: 10px 20px;
+    cursor: pointer; transition: all 0.2s;
+  }
+
+  .btn-primary:hover { background: #2563eb; }
+
+  .btn-ghost {
+    background: transparent; border: 1px solid var(--border); border-radius: 8px;
+    color: var(--muted); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 400; padding: 10px 20px;
+    cursor: pointer; transition: all 0.2s;
+  }
+
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  .mapping-preview {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .mapping-preview strong { color: var(--accent3); }
+
+  .filter-bar {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 12px 32px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+
+  .filter-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 500; }
+
+  .filter-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 12px; padding: 6px 14px; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-weight: 400;
+  }
+
+  .filter-btn:hover, .filter-btn.active { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.4); color: var(--accent); }
+
+  .main { padding: 28px 32px; display: flex; flex-direction: column; gap: 24px; }
+
+  .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+
+  .kpi-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px 22px; position: relative; overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s; box-shadow: var(--card-glow);
+  }
+
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 40px rgba(59,130,246,0.15); }
+  .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--kpi-color, var(--accent)); opacity: 0.8; }
+
+  .kpi-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-bottom: 14px; background: var(--kpi-bg, rgba(59,130,246,0.12)); }
+  .kpi-value { font-family: 'Syne', sans-serif; font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 1; margin-bottom: 6px; color: var(--kpi-color, var(--accent)); }
+  .kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 500; }
+  .kpi-sub { font-size: 11px; color: var(--accent3); margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 20px; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; box-shadow: var(--card-glow); }
+
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .card-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: -0.2px; }
+  .card-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+  .badge-blue { background: rgba(59,130,246,0.12); color: var(--accent); }
+  .badge-purple { background: rgba(139,92,246,0.12); color: var(--accent2); }
+  .badge-green { background: rgba(16,185,129,0.12); color: var(--accent3); }
+
+  canvas { max-height: 240px; }
+
+  .priority-list { display: flex; flex-direction: column; gap: 14px; }
+  .priority-header { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; }
+  .priority-name { font-weight: 500; }
+  .priority-count { color: var(--muted); }
+  .priority-track { height: 6px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .priority-fill { height: 100%; border-radius: 4px; transition: width 1s cubic-bezier(0.4,0,0.2,1); }
+
+  .org-table { width: 100%; }
+  .org-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .org-row:last-child { border-bottom: none; }
+  .org-rank { font-family: 'Syne', sans-serif; font-size: 10px; color: var(--muted); width: 18px; font-weight: 700; }
+  .org-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .org-name { flex: 1; font-weight: 400; color: var(--text); }
+  .org-count { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; }
+  .org-bar-wrap { width: 60px; height: 4px; background: var(--surface2); border-radius: 2px; }
+  .org-bar-fill { height: 100%; border-radius: 2px; }
+
+  .ticket-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .ticket-table th { text-align: left; padding: 8px 12px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); border-bottom: 1px solid var(--border); font-family: 'DM Sans', sans-serif; }
+  .ticket-table td { padding: 9px 12px; border-bottom: 1px solid rgba(30,42,74,0.5); vertical-align: middle; }
+  .ticket-table tr:last-child td { border-bottom: none; }
+  .ticket-table tr:hover td { background: rgba(59,130,246,0.04); }
+
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 500; letter-spacing: 0.3px; }
+  .tag-erro { background: rgba(239,68,68,0.12); color: #ef4444; }
+  .tag-duvida { background: rgba(59,130,246,0.12); color: #3b82f6; }
+  .tag-solicitações { background: rgba(59,130,246,0.12); color: #3b82f6; }
+  .tag-urgente { background: rgba(239,68,68,0.15); color: #ef4444; }
+  .tag-alta { background: rgba(245,158,11,0.12); color: #f59e0b; }
+  .tag-media { background: rgba(59,130,246,0.12); color: #60a5fa; }
+  .tag-baixa { background: rgba(16,185,129,0.12); color: #10b981; }
+  .tag-concluido { background: rgba(16,185,129,0.12); color: #10b981; }
+  .ticket-id { color: var(--muted); font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700; }
+
+  .table-scroll { overflow-y: auto; max-height: 320px; }
+  .table-scroll::-webkit-scrollbar { width: 4px; }
+  .table-scroll::-webkit-scrollbar-track { background: transparent; }
+  .table-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .insight-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .insight-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; display: flex; align-items: flex-start; gap: 12px; }
+  .insight-icon { font-size: 20px; margin-top: 2px; flex-shrink: 0; }
+  .insight-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+  .insight-text { font-size: 13px; color: var(--text); font-weight: 400; line-height: 1.5; }
+  .insight-text strong { color: var(--accent); font-weight: 600; }
+
+  .footer { text-align: center; padding: 20px 32px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); letter-spacing: 0.5px; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(59,130,246,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+
+  @media (max-width: 1100px) {
+    .kpi-row { grid-template-columns: repeat(3, 1fr); }
+    .grid-3 { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 768px) {
+    .main { padding: 16px; }
+    .kpi-row { grid-template-columns: 1fr 1fr; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .insight-row { grid-template-columns: 1fr; }
+    .sheets-bar { padding: 0 16px; }
+    .sheets-input { min-width: 160px; }
+    .method-tabs { flex-wrap: wrap; }
+    .method-tab { font-size: 10px; padding: 4px 8px; }
+  }
+</style>
 </head>
-<body style="margin:0; padding:0; background-color:#f4f7fa; font-family:Arial, Helvetica, sans-serif; color:#333;">
-  <center>
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width:600px; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-top:20px;">
-      
-      <!-- Cabeçalho -->
-      <tr>
-        <td align="center" bgcolor="#4CAF50" style="padding:30px;">
-          <img src="https://img.icons8.com/ios-filled/100/ffffff/whatsapp.png" alt="WhatsApp" width="60" style="margin-bottom:15px;" />
-          <h1 style="color:#fff; margin:0; font-size:24px;">🚀 Atualização da Integração WhatsApp</h1>
-          <p style="color:#e8f5e9; margin:5px 0 0; font-size:15px;">Mais segurança, estabilidade e desempenho para sua comunicação!</p>
-        </td>
-      </tr>
+<body>
 
-      <!-- Mensagem -->
-      <tr>
-        <td style="padding:25px;">
-          <p style="font-size:16px; line-height:1.5; margin:0 0 15px;">
-            Olá,<br><br>
-            Informamos que nossa <strong>integração de WhatsApp para lembretes de consultas</strong> está passando por uma atualização estratégica. 
-            Todas as APIs atuais serão <strong>reconfiguradas individualmente</strong>, garantindo muito mais eficiência.
-          </p>
-        </td>
-      </tr>
+<div class="header">
+  <div class="header-left">
+    <div class="logo-mark">R</div>
+    <div>
+      <div class="header-title">ReufyPay — Suporte N1 x2</div>
+      <div class="header-subtitle">Central de Análise de Atendimentos</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <span class="header-badge disconnected" id="connectionBadge">● Dados locais</span>
+    <div class="header-date">
+      <div style="font-size:13px;color:var(--text);" id="headerPeriod">—</div>
+      <div id="headerCount">—</div>
+    </div>
+  </div>
+</div>
 
-      <!-- Ação necessária -->
-      <tr>
-        <td style="padding:20px; background:#f9f9f9; border-left:4px solid #4CAF50;">
-          <h2 style="margin:0 0 10px; font-size:18px; color:#4CAF50;">⚠️ Ação necessária</h2>
-          <p style="margin:0; font-size:15px;">Agende um horário com <strong>Thales (Onboarding)</strong> para realizar sua atualização.</p>
-        </td>
-      </tr>
+<div class="sheets-bar">
+  <div class="sheets-top">
+    <div class="sheets-icon">📊</div>
+    <div class="sheets-label">
+      Conectar Google Sheets
+      <small id="methodHint">Planilha deve estar compartilhada publicamente</small>
+    </div>
 
-      <!-- Benefícios -->
-      <tr>
-        <td style="padding:25px;">
-          <h2 style="font-size:18px; margin:0 0 15px; color:#333;">✨ Principais melhorias:</h2>
-          <ul style="list-style:none; padding:0; margin:0; font-size:15px; line-height:1.6;">
-            <li>✅ QR Code de integração no painel do White Label</li>
-            <li>✅ Alertas automáticos de desconexão</li>
-            <li>✅ Guia técnico com regras para evitar interrupções</li>
-          </ul>
-        </td>
-      </tr>
+    <div class="method-tabs">
+      <button class="method-tab active" id="tab-csv" onclick="switchMethod('csv')">
+        Método 1 — CSV Público
+      </button>
+      <button class="method-tab" id="tab-api" onclick="switchMethod('api')">
+        Método 2 — API Key (privada)
+      </button>
+    </div>
 
-      <!-- Condições -->
-      <tr>
-        <td style="padding:25px; background:#f9f9f9;">
-          <h2 style="font-size:18px; margin:0 0 15px; color:#333;">📋 Condições da nova fase:</h2>
-          <ul style="list-style:none; padding:0; margin:0; font-size:15px; line-height:1.6;">
-            <li>💰 Mensalidade: <strong>R$ 50,00</strong></li>
-            <li>📲 Cobrança por disparos conforme uso</li>
-            <li>💳 Pagamento via assinatura no cartão</li>
-          </ul>
-          <p style="margin-top:15px; font-size:15px;">
-            Confirme sua continuidade para ativarmos a nova estrutura e configurar a cobrança.
-          </p>
-        </td>
-      </tr>
+    <button class="sheets-btn-secondary" onclick="showMappingHelp()">Ajuda</button>
+    <span class="sheets-status" id="sheetsStatus" style="display:none"></span>
+  </div>
 
-      <!-- CTA -->
-      <tr>
-        <td align="center" style="padding:30px;">
-          <a href="https://wa.me/message/AFXZZZH6KHM3P1" style="background:#4CAF50; color:#fff; text-decoration:none; padding:14px 28px; font-size:16px; border-radius:8px; font-weight:bold; display:inline-block;">
-            👉 Integrar
-          </a>
-        </td>
-      </tr>
+  <div class="sheets-bottom">
+    <div id="fields-csv" style="display:flex;align-items:flex-end;gap:10px;flex:1;flex-wrap:wrap;">
+      <div class="input-group" style="flex:2;">
+        <span class="input-label">Link da planilha</span>
+        <input class="sheets-input" id="sheetsUrl" type="text" placeholder="https://docs.google.com/spreadsheets/d/1pGrglV-Z5x0vIdmBFdQClXCLEVs_OI2Woixltku59Dk/edit?usp=sharing" />
+      </div>
+      <button class="sheets-btn" id="connectBtnCsv" onclick="connectSheets()">Conectar</button>
+    </div>
 
-      <!-- Rodapé -->
+    <div id="fields-api" style="display:none;align-items:flex-end;gap:10px;flex:1;flex-wrap:wrap;">
+      <div class="input-group" style="flex:2;">
+        <span class="input-label">Link ou ID da planilha</span>
+        <input class="sheets-input" id="apiSheetUrl" type="text" placeholder="https://docs.google.com/spreadsheets/d/1pGrglV-Z5x0vIdmBFdQClXCLEVs_OI2Woixltku59Dk/edit?usp=sharing" />
+      </div>
+      <div class="input-group" style="flex:1;">
+        <span class="input-label">Aba (range)</span>
+        <input class="sheets-input" id="apiRange" type="text" placeholder="Aba1!A1:Z1000" style="min-width:140px;" />
+      </div>
+      <div class="input-group" style="flex:1.5;">
+        <span class="input-label">API Key</span>
+        <input class="sheets-input" id="apiKey" type="password" placeholder="AIzaSy…" style="min-width:180px;" autocomplete="off" />
+      </div>
+      <button class="sheets-btn" id="connectBtnApi" onclick="connectSheetsApi()">Conectar</button>
+      <span class="api-hint">
+        🔑 <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Gerar API Key</a>
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="mapping-overlay" id="mappingOverlay">
+  <div class="mapping-modal">
+    <div class="mapping-title">Mapear Colunas da Planilha</div>
+    <div class="mapping-subtitle">Detectamos as colunas da sua planilha. Confirme o mapeamento abaixo.</div>
+    <div class="mapping-preview" id="mappingPreview"></div>
+    <div class="mapping-grid" id="mappingGrid"></div>
+    <div class="mapping-actions">
+      <button class="btn-ghost" onclick="closeMappingModal()">Cancelar</button>
+      <button class="btn-primary" onclick="applyMapping()">✓ Aplicar e Carregar</button>
+    </div>
+  </div>
+</div>
+
+<div class="mapping-overlay" id="helpOverlay">
+  <div class="mapping-modal" style="max-width:500px;">
+    <div class="mapping-title">Como conectar sua planilha</div>
+    <div style="font-size:13px;line-height:1.8;color:var(--text);margin-top:16px;">
+      <p style="margin-bottom:12px;"><strong style="color:var(--accent3);">1. Abra sua planilha</strong> no Google Sheets.</p>
+      <p style="margin-bottom:12px;"><strong style="color:var(--accent3);">2. Compartilhe:</strong> <em>Arquivo → Compartilhar → Qualquer pessoa com o link → Leitor</em></p>
+      <p style="margin-bottom:20px;"><strong style="color:var(--accent3);">3. Copie o link</strong> e cole no campo acima.</p>
+    </div>
+    <div class="mapping-actions">
+      <button class="btn-primary" onclick="document.getElementById('helpOverlay').classList.remove('active')">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <span class="filter-label">Filtrar por:</span>
+  <button class="filter-btn active" onclick="filterData('all', this)">Todos</button>
+  <button class="filter-btn" onclick="filterData('tag-solicitações', this)">Solicitação</button>
+  <button class="filter-btn" onclick="filterData('Dúvida', this)">Dúvidas</button>
+  <button class="filter-btn" onclick="filterData('Erro', this)">Erros</button>
+  <button class="filter-btn" onclick="filterData('Urgente', this)">Urgente</button>
+  <button class="filter-btn" onclick="filterData('Alta', this)">Alta</button>
+  <button class="filter-btn" onclick="filterData('Média', this)">Média</button>
+  <button class="filter-btn" onclick="filterData('Baixa', this)">Baixa</button>
+</div>
+
+<div class="main">
+  <div class="kpi-row" id="kpiRow">
+    <div class="kpi-card" style="--kpi-color:#3b82f6;--kpi-bg:rgba(59,130,246,0.1)">
+      <div class="kpi-icon">📋</div>
+      <div class="kpi-value" id="kpiTotal">—</div>
+      <div class="kpi-label">Total de Chamados</div>
+      <div class="kpi-sub" id="kpiTotalSub">aguardando dados</div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:#10b981;--kpi-bg:rgba(16,185,129,0.1)">
+      <div class="kpi-icon">✅</div>
+      <div class="kpi-value" id="kpiResolved">—</div>
+      <div class="kpi-label">Taxa de Resolução</div>
+      <div class="kpi-sub" id="kpiResolvedSub">—</div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:#f59e0b;--kpi-bg:rgba(245,158,11,0.1)">
+      <div class="kpi-icon">⏱</div>
+      <div class="kpi-value" id="kpiAvgTime">—</div>
+      <div class="kpi-label">Tempo Médio</div>
+      <div class="kpi-sub" id="kpiTimeSub">—</div>
+    </div>
+
+    <!-- ✅ CORRIGIDO: card único, sem duplicata, tag fechada corretamente -->
+    <div class="kpi-card" style="--kpi-color:#ef4444;--kpi-bg:rgba(239,68,68,0.1)">
+      <div class="kpi-icon">🚨</div>
+      <div class="kpi-value" id="kpiUrgent">—</div>
+      <div class="kpi-label">Chamados Urgentes</div>
+      <div class="kpi-sub" id="kpiUrgentSub">aguardando dados</div>
+    </div>
+
+    <div class="kpi-card" style="--kpi-color:#8b5cf6;--kpi-bg:rgba(139,92,246,0.1)">
+      <div class="kpi-icon">🏢</div>
+      <div class="kpi-value" id="kpiOrgs">—</div>
+      <div class="kpi-label">Organizações</div>
+      <div class="kpi-sub">Clientes únicos</div>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Período</div></div>
+      <canvas id="timelineChart"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Categoria</div></div>
+      <canvas id="catChart"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Prioridade</div></div>
+      <div class="priority-list" id="priorityList"></div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Top Organizações</div></div>
+      <div id="orgList" class="org-table"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Volume Semanal</div></div>
+      <canvas id="weekChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Registro Completo</div>
+      <span class="card-badge badge-green" id="tableCount">— chamados</span>
+    </div>
+    <div class="table-scroll">
+      <table class="ticket-table" id="ticketTable">
+        <thead>
+          <tr>
+            <th>#</th><th>Data</th><th>Cliente</th><th>Organização</th>
+            <th>Categoria</th><th>Prioridade</th><th>Status</th><th>Tempo</th><th>Descrição</th>
+          </tr>
+        </thead>
+        <tbody id="ticketBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="insight-row" id="insightRow">
+    <div class="insight-card">
+      <div class="insight-icon">💡</div>
+      <div><div class="insight-title">Canal</div><div class="insight-text" id="insightCanal">—</div></div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-icon">📊</div>
+      <div><div class="insight-title">Categoria</div><div class="insight-text" id="insightCat">—</div></div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-icon">🔥</div>
+      <div><div class="insight-title">Foco</div><div class="insight-text" id="insightOrg">—</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer" id="footerEl">ReufyPay · Suporte N1</div>
+
+<script>
+// ── GLOBALS & CONFIG ─────────────────────────────────────
+let activeMethod = 'csv';
+let tickets = [];
+let currentFilter = 'all';
+let csvHeaders = [];
+let currentMapping = {};
+let tlChart, catChart, weekChart;
+
+const COLORS = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4','#ec4899','#84cc16'];
+const PRI_COLORS = { 'Urgente': '#ef4444', 'Alta': '#f59e0b', 'Média': '#3b82f6', 'Baixa': '#10b981' };
+
+const FIELD_DEFS = [
+  { key: 'id',     label: 'ID / Nº',        hint: 'ID único', aliases: ['id','nº','n°','numero','number','#'] },
+  { key: 'date',   label: 'Data',            hint: 'Abertura', aliases: ['data','date','dt','abertura','criado','criação'] },
+  { key: 'client', label: 'Cliente',         hint: 'Nome',     aliases: ['cliente','client','nome','name','contato','contact'] },
+  { key: 'org',    label: 'Organização',     hint: 'Empresa',  aliases: ['organização','organizacao','org','empresa','company','organization','clinica','clínica'] },
+  { key: 'canal',  label: 'Canal',           hint: 'Via',      aliases: ['canal','channel','meio','via'] },
+  { key: 'cat',    label: 'Categoria',       hint: 'Tipo',     aliases: ['categoria','category','cat','tipo','type','classificação','classificacao'] },
+  { key: 'pri',    label: 'Prioridade',      hint: 'Urgência', aliases: ['prioridade','priority','pri','Urgência','urgência','nivel','nível'] },
+  { key: 'status', label: 'Status',          hint: 'Situação', aliases: ['status','situação','situacao','estado','state'] },
+  { key: 'tempo',  label: 'Tempo (min)',     hint: 'Resolução',aliases: ['tempo','time','duration','duração','duracao','tma','minutos','min','resolução'] },
+  { key: 'desc',   label: 'Descrição',       hint: 'Assunto',  aliases: ['descrição','descricao','description','desc','assunto','subject','titulo','título','problema'] },
+];
+
+// ── UTILITIES ───────────────────────────────────────────
+function switchMethod(method) {
+  activeMethod = method;
+  document.getElementById('tab-csv').classList.toggle('active', method === 'csv');
+  document.getElementById('tab-api').classList.toggle('active', method === 'api');
+  document.getElementById('fields-csv').style.display = method === 'csv' ? 'flex' : 'none';
+  document.getElementById('fields-api').style.display = method === 'api' ? 'flex' : 'none';
+  document.getElementById('methodHint').textContent = method === 'csv'
+    ? 'Planilha deve estar compartilhada publicamente'
+    : 'Funciona com planilhas privadas via API';
+  setStatus('', '');
+  localStorage.setItem('reufy_method', method);
+}
+
+function setStatus(msg, type) {
+  const el = document.getElementById('sheetsStatus');
+  el.style.display = 'inline-block';
+  el.className = `sheets-status ${type}`;
+  el.innerHTML = msg;
+}
+
+function extractSheetInfo(url) {
+  const idMatch = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  const gidMatch = url.match(/[#&?]gid=(\d+)/);
+  if (!idMatch) return null;
+  return { id: idMatch[1], gid: gidMatch ? gidMatch[1] : '0' };
+}
+
+function parseDate(raw) {
+  if (!raw) return '';
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.substring(0, 10);
+  const parts = raw.split(/[\/\-\.]/);
+  if (parts.length === 3) {
+    let [d, m, y] = parts;
+    if (y.length === 2) y = '20' + y;
+    if (d.length === 4) return `${d}-${m.padStart(2,'0')}-${y.padStart(2,'0')}`;
+    return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+  }
+  return raw;
+}
+
+function parseCSV(text) {
+  const rows = [];
+  const lines = text.split(/\r?\n/);
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const row = [];
+    let field = '';
+    let inQuote = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') {
+        if (inQuote && line[i+1] === '"') { field += '"'; i++; }
+        else { inQuote = !inQuote; }
+      } else if (c === ',' && !inQuote) {
+        row.push(field); field = '';
+      } else {
+        field += c;
+      }
+    }
+    row.push(field);
+    rows.push(row);
+  }
+  return rows;
+}
+
+// ── CONNECTION HANDLERS ─────────────────────────────────
+async function connectSheets() {
+  const url = document.getElementById('sheetsUrl').value.trim();
+  if (!url) { setStatus('Cole um link válido', 'err'); return; }
+  const info = extractSheetInfo(url);
+  if (!info) { setStatus('Link não reconhecido', 'err'); return; }
+
+  const btn = document.getElementById('connectBtnCsv');
+  btn.disabled = true;
+  setStatus('<span class="spinner"></span> Buscando…', 'loading');
+
+  try {
+    // Note a mudança: trocamos /edit... por /export?format=csv&gid=77227608
+    const csvUrl = `https://docs.google.com/spreadsheets/d/1pGrglV-Z5x0vIdmBFdQClXCLEVs_OI2Woixltku59Dk/export?format=csv&gid=77227608`;
+    
+    const res = await fetch(csvUrl);
+    if (!res.ok) throw new Error(`HTTP ${res.status} - Verifique se a planilha está pública`);
+    
+    const text = await res.text();
+    const rows = parseCSV(text);
+    if (rows.length < 2) throw new Error('Planilha sem dados');
+
+    csvHeaders = rows[0].map(h => h.trim());
+    currentMapping = autoDetectMapping(csvHeaders);
+    showMappingModal(csvHeaders, rows.length - 1);
+    setStatus(`✓ Dados detectados`, 'ok');
+  } catch (err) {
+    setStatus(`✗ ${err.message}`, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function connectSheetsApi() {
+  const rawUrl = document.getElementById('apiSheetUrl').value.trim();
+  const apiKey  = document.getElementById('apiKey').value.trim();
+  const range   = document.getElementById('apiRange').value.trim() || 'A1:Z2000';
+
+  if (!rawUrl || !apiKey) { setStatus('URL e API Key são obrigatórios', 'err'); return; }
+  const info = extractSheetInfo(rawUrl) || { id: rawUrl.trim() };
+
+  const btn = document.getElementById('connectBtnApi');
+  btn.disabled = true;
+  setStatus('<span class="spinner"></span> API...', 'loading');
+
+  try {
+    const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${info.id}/values/${encodeURIComponent(range)}?key=${apiKey}`;
+    const res = await fetch(endpoint);
+    if (!res.ok) throw new Error('Erro na API');
+    const json = await res.json();
+    const rows = json.values;
+    if (!rows || rows.length < 2) throw new Error('Sem dados');
+
+    csvHeaders = rows[0].map(h => String(h).trim());
+    currentMapping = autoDetectMapping(csvHeaders);
+    window._pendingApiData = rows;
+    window._pendingSource = 'api';
+    showMappingModal(csvHeaders, rows.length - 1);
+  } catch (err) {
+    setStatus(`✗ ${err.message}`, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── DASHBOARD ENGINE ─────────────────────────────────────
+function autoDetectMapping(headers) {
+  const mapping = {};
+  const used = new Set();
+  FIELD_DEFS.forEach(field => {
+    for (let i = 0; i < headers.length; i++) {
+      if (used.has(i)) continue;
+      const h = headers[i].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+      if (field.aliases.some(a => h === a.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, ''))) {
+        mapping[field.key] = i;
+        used.add(i);
+        break;
+      }
+    }
+  });
+  return mapping;
+}
+
+function showMappingModal(headers, rowCount) {
+  const grid = document.getElementById('mappingGrid');
+  const opts = ['(ignorar)', ...headers];
+  document.getElementById('mappingPreview').innerHTML = `<strong>${rowCount} linhas detectadas</strong>`;
+  grid.innerHTML = FIELD_DEFS.map(field => {
+    const selected = currentMapping[field.key] !== undefined ? currentMapping[field.key] + 1 : 0;
+    return `
+      <div class="mapping-row">
+        <div class="mapping-field">${field.label}<span>${field.hint}</span></div>
+        <div class="mapping-arrow">→</div>
+        <select class="mapping-select" id="map_${field.key}">
+          ${opts.map((o, i) => `<option value="${i-1}" ${i === selected ? 'selected' : ''}>${i === 0 ? '— ignorar —' : o}</option>`).join('')}
+        </select>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('mappingOverlay').classList.add('active');
+}
+
+function closeMappingModal() { document.getElementById('mappingOverlay').classList.remove('active'); }
+function showMappingHelp() { document.getElementById('helpOverlay').classList.add('active'); }
+
+async function applyMapping() {
+  FIELD_DEFS.forEach(f => {
+    const val = parseInt(document.getElementById(`map_${f.key}`).value);
+    if (val >= 0) currentMapping[f.key] = val;
+    else delete currentMapping[f.key];
+  });
+  closeMappingModal();
+
+  if (window._pendingSource === 'api' && window._pendingApiData) {
+    tickets = window._pendingApiData.slice(1).map((r, i) => mapRow(r, i));
+    loadDashboard();
+    return;
+  }
+
+  const url = document.getElementById('sheetsUrl').value.trim();
+  const info = extractSheetInfo(url);
+  try {
+    const res = await fetch(`https://docs.google.com/spreadsheets/d/${info.id}/export?format=csv&gid=${info.gid}`);
+    const text = await res.text();
+    tickets = parseCSV(text).slice(1).map((r, i) => mapRow(r, i));
+    loadDashboard();
+    localStorage.setItem('reufy_sheets_url', url);
+  } catch (err) { setStatus('Erro no carregamento final', 'err'); }
+}
+
+function mapRow(row, idx) {
+  const g = (k) => (currentMapping[k] !== undefined ? String(row[currentMapping[k]] || '').trim() : '—');
+  const rawT = g('tempo');
+  return {
+    id: g('id') !== '—' ? g('id') : idx + 1,
+    date: parseDate(g('date')),
+    client: g('client'),
+    org: g('org'),
+    canal: g('canal'),
+    cat: g('cat'),
+    pri: g('pri'),
+    status: g('status'),
+    tempo: parseInt(rawT.replace(/[^\d]/g, '')) || null,
+    desc: g('desc')
+  };
+}
+
+function loadDashboard() {
+  updateAll();
+  const badge = document.getElementById('connectionBadge');
+  badge.textContent = '● Conectado';
+  badge.className = 'header-badge';
+  document.getElementById('headerCount').textContent = `${tickets.length} chamados`;
+}
+
+function filterData(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updateAll();
+}
+
+function updateAll() {
+  const data = currentFilter === 'all' ? tickets : tickets.filter(t => t.cat === currentFilter || t.pri === currentFilter);
+  updateKPIs(data);
+  updateCharts(data);
+  updateTable(data);
+  updateInsights(data);
+}
+
+// ── ✅ CORRIGIDO: updateKPIs agora calcula e exibe urgentes corretamente ──
+function updateKPIs(data) {
+  document.getElementById('kpiTotal').textContent = data.length;
+
+  const res = data.filter(t => t.status.toLowerCase().match(/conclu|resol/)).length;
+  document.getElementById('kpiResolved').textContent =
+    (data.length ? Math.round(res / data.length * 100) : 0) + '%';
+  document.getElementById('kpiResolvedSub').textContent =
+    res ? `${res} resolvidos` : '—';
+
+  // Tempo médio
+  const tempos = data.filter(t => t.tempo).map(t => t.tempo);
+  if (tempos.length) {
+    const avg = Math.round(tempos.reduce((a, b) => a + b, 0) / tempos.length);
+    document.getElementById('kpiAvgTime').textContent = avg + 'm';
+    document.getElementById('kpiTimeSub').textContent = `${tempos.length} com tempo`;
+  } else {
+    document.getElementById('kpiAvgTime').textContent = '—';
+    document.getElementById('kpiTimeSub').textContent = 'sem registros';
+  }
+
+  // ✅ Cálculo de urgentes corrigido
+  const urgent = data.filter(t =>
+    (t.pri || '').toLowerCase() === 'urgente' ||
+    (t.cat || '').toLowerCase() === 'urgente'
+  ).length;
+  document.getElementById('kpiUrgent').textContent = urgent;
+  document.getElementById('kpiUrgentSub').textContent =
+    data.length
+      ? urgent
+        ? `${Math.round(urgent / data.length * 100)}% do total`
+        : 'nenhum urgente'
+      : 'aguardando dados';
+
+  document.getElementById('kpiOrgs').textContent = new Set(data.map(t => t.org)).size;
+}
+
+// ── ✅ CORRIGIDO: updateCharts sem o updateKPIs duplicado dentro ──
+function updateCharts(data) {
+  // Timeline
+  const timelineData = {};
+  data.forEach(t => { if (t.date) timelineData[t.date] = (timelineData[t.date] || 0) + 1; });
+  const sorted = Object.entries(timelineData).sort();
+
+  if (tlChart) tlChart.destroy();
+  tlChart = new Chart(document.getElementById('timelineChart'), {
+    type: 'bar',
+    data: {
+      labels: sorted.map(s => s[0]),
+      datasets: [{ data: sorted.map(s => s[1]), backgroundColor: '#3b82f6', borderRadius: 4 }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(30,42,74,0.5)' } },
+        y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(30,42,74,0.5)' } }
+      }
+    }
+  });
+
+  // Category
+  const cats = {};
+  data.forEach(t => { if (t.cat !== '—') cats[t.cat] = (cats[t.cat] || 0) + 1; });
+  if (catChart) catChart.destroy();
+  catChart = new Chart(document.getElementById('catChart'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(cats),
+      datasets: [{ data: Object.values(cats), backgroundColor: COLORS, borderWidth: 0 }]
+    },
+    options: {
+      plugins: {
+        legend: { labels: { color: '#e2e8f0', font: { size: 11 } } }
+      }
+    }
+  });
+
+  // Priority List
+  const pris = {};
+  data.forEach(t => { if (t.pri !== '—') pris[t.pri] = (pris[t.pri] || 0) + 1; });
+  document.getElementById('priorityList').innerHTML = Object.entries(pris).map(([p, v]) => `
+    <div class="priority-item">
+      <div class="priority-header">
+        <span class="priority-name">${p}</span>
+        <span class="priority-count">${v}</span>
+      </div>
+      <div class="priority-track">
+        <div class="priority-fill" style="width:${(v / data.length) * 100}%;background:${PRI_COLORS[p] || '#8b5cf6'}"></div>
+      </div>
+    </div>
+  `).join('');
+
+  // Org list
+  const orgs = {};
+  data.forEach(t => { if (t.org !== '—') orgs[t.org] = (orgs[t.org] || 0) + 1; });
+  const topOrgs = Object.entries(orgs).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const maxOrg = topOrgs[0] ? topOrgs[0][1] : 1;
+  document.getElementById('orgList').innerHTML = topOrgs.map(([name, count], i) => `
+    <div class="org-row">
+      <span class="org-rank">${i + 1}</span>
+      <span class="org-dot" style="background:${COLORS[i % COLORS.length]}"></span>
+      <span class="org-name">${name}</span>
+      <span class="org-count" style="color:${COLORS[i % COLORS.length]}">${count}</span>
+      <div class="org-bar-wrap">
+        <div class="org-bar-fill" style="width:${(count / maxOrg) * 100}%;background:${COLORS[i % COLORS.length]}"></div>
+      </div>
+    </div>
+  `).join('');
+
+  // Weekly volume
+  const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const weekData = Array(7).fill(0);
+  data.forEach(t => {
+    if (t.date) {
+      const d = new Date(t.date);
+      if (!isNaN(d)) weekData[d.getDay()]++;
+    }
+  });
+  if (weekChart) weekChart.destroy();
+  weekChart = new Chart(document.getElementById('weekChart'), {
+    type: 'line',
+    data: {
+      labels: weekDays,
+      datasets: [{
+        data: weekData,
+        borderColor: '#8b5cf6',
+        backgroundColor: 'rgba(139,92,246,0.1)',
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#8b5cf6',
+        pointRadius: 4
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#64748b', font: { size: 11 } }, grid: { color: 'rgba(30,42,74,0.5)' } },
+        y: { ticks: { color: '#64748b', font: { size: 11 } }, grid: { color: 'rgba(30,42,74,0.5)' } }
+      }
+    }
+  });
+}
+
+function updateTable(data) {
+  document.getElementById('tableCount').textContent = `${data.length} chamados`;
+  document.getElementById('ticketBody').innerHTML = data.map(t => {
+    const priClass = (t.pri || '').toLowerCase() === 'urgente' ? 'tag-urgente'
+      : (t.pri || '').toLowerCase() === 'alta' ? 'tag-alta'
+      : (t.pri || '').toLowerCase() === 'baixa' ? 'tag-baixa'
+      : 'tag-media';
+    const catClass = (t.cat || '').toLowerCase().includes('erro') ? 'tag-erro' : 'tag-duvida';
+    const statusClass = (t.status || '').toLowerCase().match(/conclu|resol/) ? 'tag-concluido' : 'tag-media';
+    return `
       <tr>
-        <td align="center" bgcolor="#eeeeee" style="padding:20px; font-size:12px; color:#555;">
-          <p style="margin:0;">Equipe Reufy © 2025</p>
-        </td>
+        <td><span class="ticket-id">#${t.id}</span></td>
+        <td>${t.date}</td>
+        <td>${t.client}</td>
+        <td>${t.org}</td>
+        <td><span class="tag ${catClass}">${t.cat}</span></td>
+        <td><span class="tag ${priClass}">${t.pri}</span></td>
+        <td><span class="tag ${statusClass}">${t.status}</span></td>
+        <td>${t.tempo ? t.tempo + 'm' : '—'}</td>
+        <td title="${t.desc}">${t.desc && t.desc.length > 60 ? t.desc.substring(0, 60) + '…' : t.desc}</td>
       </tr>
-    </table>
-  </center>
+    `;
+  }).join('');
+}
+
+function updateInsights(data) {
+  if (!data.length) return;
+
+  // Canal mais usado
+  const canais = {};
+  data.forEach(t => { if (t.canal !== '—') canais[t.canal] = (canais[t.canal] || 0) + 1; });
+  const topCanal = Object.entries(canais).sort((a, b) => b[1] - a[1])[0];
+  document.getElementById('insightCanal').innerHTML = topCanal
+    ? `Canal principal: <strong>${topCanal[0]}</strong> (${topCanal[1]} chamados)`
+    : '—';
+
+  // Categoria mais frequente
+  const cats = {};
+  data.forEach(t => { if (t.cat !== '—') cats[t.cat] = (cats[t.cat] || 0) + 1; });
+  const topCat = Object.entries(cats).sort((a, b) => b[1] - a[1])[0];
+  document.getElementById('insightCat').innerHTML = topCat
+    ? `Categoria dominante: <strong>${topCat[0]}</strong> (${topCat[1]})`
+    : '—';
+
+  // Organização com mais chamados
+  const orgs = {};
+  data.forEach(t => { if (t.org !== '—') orgs[t.org] = (orgs[t.org] || 0) + 1; });
+  const topOrg = Object.entries(orgs).sort((a, b) => b[1] - a[1])[0];
+  document.getElementById('insightOrg').innerHTML = topOrg
+    ? `Maior volume: <strong>${topOrg[0]}</strong> com ${topOrg[1]} chamados`
+    : '—';
+}
+
+// ── INIT ────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const savedMethod = localStorage.getItem('reufy_method') || 'csv';
+  switchMethod(savedMethod);
+  const savedUrl = localStorage.getItem('reufy_sheets_url');
+  if (savedUrl) document.getElementById('sheetsUrl').value = savedUrl;
+});
+</script>
 </body>
 </html>
